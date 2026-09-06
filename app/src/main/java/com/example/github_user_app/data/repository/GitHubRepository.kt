@@ -26,8 +26,8 @@ import kotlinx.coroutines.coroutineScope
  *    本フラグの参照箇所を修正してください。
  * =========================================================================
  */
-private const val USE_SAMPLE_DATA_ON_API_ERROR = true
-private const val FORCE_USE_SAMPLE_DATA = true
+private const val USE_SAMPLE_DATA_ON_API_ERROR = false
+private const val FORCE_USE_SAMPLE_DATA = false
 
 /**
  * GitHub API の通信結果を取得・加工してプレゼンテーション層 (ViewModel) に提供するリポジトリクラス。

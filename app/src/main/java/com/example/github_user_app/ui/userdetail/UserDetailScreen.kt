@@ -1,6 +1,10 @@
 package com.example.github_user_app.ui.userdetail
 
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -136,6 +141,8 @@ private fun UserDetailContent(
     user: GitHubUserDetail,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
@@ -208,9 +215,20 @@ private fun UserDetailContent(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // GitHub プロフィール URL カード
+        // GitHub プロフィール URL カード（タップで外部ブラウザ起動）
         if (!user.htmlUrl.isNullOrBlank()) {
-            InfoCard(title = "GitHub プロフィール", content = user.htmlUrl)
+            InfoCard(
+                title = "GitHub プロフィール",
+                content = user.htmlUrl,
+                onClick = {
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(user.htmlUrl))
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "ブラウザの起動に失敗しました", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            )
             Spacer(modifier = Modifier.height(12.dp))
         }
 
@@ -257,10 +275,19 @@ private fun StatItem(
 @Composable
 private fun InfoCard(
     title: String,
-    content: String
+    content: String,
+    onClick: (() -> Unit)? = null
 ) {
+    val cardModifier = if (onClick != null) {
+        Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+    } else {
+        Modifier.fillMaxWidth()
+    }
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = cardModifier,
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -276,7 +303,7 @@ private fun InfoCard(
             Text(
                 text = content,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = if (onClick != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

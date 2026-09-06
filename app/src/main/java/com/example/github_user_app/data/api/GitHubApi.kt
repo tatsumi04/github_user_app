@@ -1,5 +1,6 @@
 package com.example.github_user_app.data.api
 
+import com.example.github_user_app.BuildConfig
 import com.example.github_user_app.data.model.GitHubUserDetail
 import com.example.github_user_app.data.model.GitHubUserListItem
 import com.example.github_user_app.data.model.GitHubUserRepo
@@ -93,10 +94,14 @@ object RetrofitClient {
                 .build()
             chain.proceed(request)
         }
-        // HTTP 通信ログの出力インターセプター
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BASIC
-        })
+        // デバッグビルド時のみ HTTP 通信ログの出力インターセプターを追加
+        .apply {
+            if (BuildConfig.DEBUG) {
+                addInterceptor(HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BASIC
+                })
+            }
+        }
         .build()
 
     /**
