@@ -188,33 +188,28 @@ class GitHubRepository(
         limit: Int = 20
     ): List<GitHubUserListItem> = coroutineScope {
         val targetUsers = users.take(limit)
-        val enrichedUsers = targetUsers.mapIndexed { index, user ->
+        val enrichedUsers = targetUsers.map { user ->
             async {
-                // APIレート制限保護のため、上位10件について詳細なリポジトリ・コミット情報を並列取得
-                if (index < 10) {
-                    try {
-                        val repos = api.getUserRepos(user.login, sort = "pushed", direction = "desc", perPage = 20)
-                        val topLangs = repos
-                            .mapNotNull { it.language }
-                            .filter { it.isNotBlank() }
-                            .groupingBy { it }
-                            .eachCount()
-                            .entries
-                            .sortedByDescending { it.value }
-                            .take(2)
-                            .map { it.key }
+                try {
+                    val repos = api.getUserRepos(user.login, sort = "pushed", direction = "desc", perPage = 20)
+                    val topLangs = repos
+                        .mapNotNull { it.language }
+                        .filter { it.isNotBlank() }
+                        .groupingBy { it }
+                        .eachCount()
+                        .entries
+                        .sortedByDescending { it.value }
+                        .take(2)
+                        .map { it.key }
 
-                        // 最終コミット・プッシュ日時（pushed_at または updated_at）を取得
-                        val latestCommitDate = repos.mapNotNull { it.pushedAt ?: it.updatedAt }.maxOrNull()
+                    // 最終コミット・プッシュ日時（pushed_at または updated_at）を取得
+                    val latestCommitDate = repos.mapNotNull { it.pushedAt ?: it.updatedAt }.maxOrNull()
 
-                        user.copy(
-                            topLanguages = topLangs,
-                            lastCommitDate = latestCommitDate
-                        )
-                    } catch (e: Exception) {
-                        user
-                    }
-                } else {
+                    user.copy(
+                        topLanguages = topLangs,
+                        lastCommitDate = latestCommitDate
+                    )
+                } catch (e: Exception) {
                     user
                 }
             }
